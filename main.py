@@ -46,8 +46,22 @@ def health():
 
 
 @app.post("/reports", status_code=201)
-def create_report():
+def create_report(body: Optional[dict] = Body(default=None)):
+    force = bool(body and body.get("force"))
     conn = get_connection()
+
+    if not force:
+        today = datetime.now().strftime("%Y-%m-%d")
+        existing = conn.execute(
+            "SELECT id, path, created_at FROM reports WHERE DATE(created_at) = ? ORDER BY id DESC LIMIT 1",
+            (today,),
+        ).fetchone()
+        if existing:
+            conn.close()
+            return JSONResponse(
+                status_code=200,
+                content={"id": existing["id"], "file": f"/reports/{existing['id']}/file"},
+            )
 
     report = get_report_data()
     html = build_html(report)
@@ -66,7 +80,6 @@ def create_report():
     conn.close()
 
     return {"id": report_id, "file": f"/reports/{report_id}/file"}
-
 
 @app.get("/reports/{report_id}")
 def get_report(report_id: int):
