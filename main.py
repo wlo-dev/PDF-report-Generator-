@@ -2,8 +2,9 @@ import os
 import sqlite3
 from datetime import datetime
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from typing import Optional
+from fastapi import Body, FastAPI, HTTPException
+from fastapi.responses import FileResponse, JSONResponse
 
 from render import build_html, render_pdf
 from report_data import get_report_data
